@@ -22,24 +22,12 @@ app.use(express.urlencoded({ extended: true}))
 
 /*************************************/
 /*** Import des modules de routage ***/
-var appServer 
-// const authorization_router = require('./routes/authorization')
-
-const session_router = require('./routes/sessions')
-
-const inscription_router = require('./routes/inscriptions')
 
 const user_router = require('./routes/users')
 
 
 
 // const auth_router = require('./routes/auth')
-
-const session = require('express-session')
-const { OAuth2Client } = require('google-auth-library')
-const client = new OAuth2Client("775629632797-v6clfh5oude9sr2fna2rag63acpm2lp6.apps.googleusercontent.com")
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}))
-
 
 
 app.post("/login", async (req, res) => {
@@ -72,46 +60,13 @@ app.post("/login", async (req, res) => {
 /*** Mise en place du routage ***/
 app.get('/', (req, res) => res.send(`API en ligne`) )
 
-app.use('/session', session_router)
-
-app.use('/inscription' , inscription_router)
-
 app.use('/user', user_router)
 
-// app.use('/sub', sub_router)
 // app.use('/auth', auth_router)
 
 
 app.get('*', (req,res) => res.status(501).send('Ressource inexistante'))
 
-// quit on ctrl-c when running docker in terminal
-process.on("SIGINT", function onSigint() {
-    console.info(
-        "Got SIGINT (aka ctrl-c in docker). Graceful shutdown ",
-        new Date().toISOString()
-    );
-    shutdown();
-});
-  
-// quit properly on docker stop
-process.on("SIGTERM", function onSigterm() {
-    console.info(
-        "Got SIGTERM (docker container stop). Graceful shutdown ",
-        new Date().toISOString()
-    );
-    shutdown();
-});
-  
-// shut down server
-function shutdown() {
-    appServer.close(function onServerClosed(err) {
-        if (err) {
-        console.error(err);
-        process.exit(1);
-        }
-        process.exit(0);
-    });
-}
 
 /*********************************/
 /*** Start server avec test DB ***/
