@@ -1,0 +1,34 @@
+include:
+  - project: 'meteorage1/expl-mtrg/cicd-scripts'
+    file: /docker-img/build-push.yml
+    # ref: tests
+
+#variables:
+  # DOCKERFILE: Dockerfile-alpine      # If Dockerfile is not named Dockerfile...
+  # DOCKERBUILD_RELATIVE_PATH: src    # If docker build command shoudl be executed in another place of root source dir
+  # CI_REGISTRY_IMAGE: quay.io/meteorage/prodauto-test  # Create registry on quay.io, set the write permissions to meteorage+gitlabci 
+  # CICD_DEPLOYMENT_DIR:               # Folder containing all the kubernetes manifests
+  # DEBUG: "yes"                    # DEBUG CICD
+  # CICD_SECURITY_LEVEL_NOT_ACCEPTABLE # "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"  (DEFAULT=CRITICAL)
+                                       # Set LOW to control that docker image do not have LOW,MEDIUM,HGH or CRITICAL vulnerabilities
+  # CICD_SKIP_GITLEAKS: "yes"          # Skip gitleaks (DEFAULT="")
+
+build:
+  extends: .build
+
+# container_scanning:
+#   extends: .container_scanning
+
+unit-tests:
+  stage: test
+  image:
+    name: registry.gitlab.com/meteorage1/expl-mtrg/cicd-scripts:latest
+    entrypoint: [""]
+  script:
+    - test /bin/true
+
+deploy-preprod:
+  extends: .deploy-to-preprod
+  environment: preprod
+  variables:
+    NAMESPACE: prodautos

@@ -1,0 +1,31 @@
+version: '3.2'
+services:
+  seminaire-backend:
+    image: seminaire-backend:latest
+    ports:
+        - 8888:80
+    environment:
+      - DB_HOST=postgres-server
+      - DB_PORT=5432
+      - POSTGRES_DB=catsdb
+      - DB_USER=postgres
+      - DB_PASS=password
+      - SERVER_PORT=80
+    stop_grace_period: 1m
+    networks:
+      - web-net
+    # postgres-server:
+    #   image: postgres:15.0
+    #   ports:
+    #   - 5432:5432
+    #   stop_grace_period: 1m
+    #   environment:
+    #   - POSTGRES_DB=catsdb
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=password
+    #   volumes:
+    #   - ./data:/var/lib/postgresql/data
+    #   - ./init:/docker-entrypoint-initdb.d
+networks:
+  web-net:
+    driver: bridge
