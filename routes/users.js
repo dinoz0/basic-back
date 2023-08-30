@@ -8,96 +8,96 @@ const checkTokenMiddleware = require('../jsonwebtoken/check')
 
 /*****************************************/
 /*** Récupération du routeur d'express ***/
-let router =express.Router()
+let router = express.Router()
 
 /************************************/
 /*** Routage de la ressource User ***/
 
 router.get('', (req, res) => {
     User.findAll()
-        .then( user => res.json({ data: user}))
-        .catch( err => res.status(500).json({message: "Database Error", error: err}))// ne pas laisser pour la version final 
+        .then(user => res.json({ data: user }))
+        .catch(err => res.status(500).json({ message: "Database Error", error: err }))// ne pas laisser pour la version final 
 })
 
 router.get('/:id', (req, res) => {
     let userId = parseInt(req.params.id)
 
     // Vérification si le champ id est présent et cohérent
-    if(!userId){
-        return res.json(400).json({ message:'Missing Parameter'})
+    if (!userId) {
+        return res.json(400).json({ message: 'Missing Parameter' })
     }
 
     // Récupération de l'utilisateur
-    User.findOne({ where: {id: userId}, raw : true})
+    User.findOne({ where: { id: userId }, raw: true })
         .then(user => {
-            if((user === null)){
-                return res.status(400).json({ message: 'This user does not exist !'})
+            if ((user === null)) {
+                return res.status(400).json({ message: 'This user does not exist !' })
             }
 
             // User trouvé
-            return res.json({data: user})
+            return res.json({ data: user })
         })
-        .catch(err =>res.status(500).json({ message: 'Database Error', error: err}))
+        .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.put('' , checkTokenMiddleware, (req, res) =>{
-    const {email, service, roles} = req.body
+router.put('', (req, res) => {
+    const { email, password } = req.body
 
     //Validation des données recus
-    if( !email || !service || !roles ){
-        return res.status(400).json({message: 'Missing Data'})
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Missing Data' })
     }
 
-    User.findOne({where: { email: email}, raw: true})
-        .then(user =>{
-            //vérification si la user existe déjà
-            if( user !== null){
-                return res.status(409).json({ message: `The user ${user} already exists`})
+    User.findOne({ where: { email: email }, raw: true })
+        .then(user => {
+            //vérification si l'user existe déjà
+            if (user !== null) {
+                return res.status(409).json({ message: `The user ${user} already exists` })
             }
 
             User.create(req.body)
-                .then(user => res.json({ message: 'User Created', data : user}))
-                .catch(err =>res.status(500).json({ message: 'Database Error', error: err}))
+                .then(user => res.json({ message: 'User Created', data: user }))
+                .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
         })
-        .catch(err =>res.status(500).json({ message: 'Database Error', error: err}))
+        .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.patch('/:id' , checkTokenMiddleware, (req, res) =>{
+router.patch('/:id', (req, res) => {
     let userId = parseInt(req.params.id)
 
     //vérification si le champ id est présent et cohérent
-    if(!userId){
-        return res.status(400).json({message: 'Missing parameter'})
+    if (!userId) {
+        return res.status(400).json({ message: 'Missing parameter' })
     }
 
     // recherche de la user
-    User.findOne({where: {id: userId}, raw: true })
+    User.findOne({ where: { id: userId }, raw: true })
         .then(user => {
             //vérifier si l'utilisateur existe
-            if(user === null){
-                return res.status(404).json({ message: 'This user does not exist'})
+            if (user === null) {
+                return res.status(404).json({ message: 'This user does not exist' })
             }
 
             //mise à jour de la user
-            User.update(req.body, { where: {id: userId}})
-                .then(user => res.json({ message: 'User Updated'}))
-                .catch(err =>res.status(500).json({ message: 'Database Error', error: err}))
+            User.update(req.body, { where: { id: userId } })
+                .then(user => res.json({ message: 'User Updated' }))
+                .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
         })
-        .catch(err =>res.status(500).json({ message: 'Database Error', error: err}))
+        .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.delete('/:id', (req, res) =>{
+router.delete('/:id', (req, res) => {
     let userId = parseInt(req.params.id)
 
     //vérification si le champ id est présent et cohérent
-    if(!userId){
-        return res.status(400).json({message: 'Missing parameter'})
+    if (!userId) {
+        return res.status(400).json({ message: 'Missing parameter' })
     }
 
     //suppression de l'utlisateur
-    User.destroy({ where: {id: userId}, force : true})
+    User.destroy({ where: { id: userId }, force: true })
         .then(() => res.status(204).json({}))
-        .catch(err =>res.status(500).json({ message: 'Database Error', error: err})) 
+        .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 
 })
 
