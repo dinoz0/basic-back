@@ -4,6 +4,8 @@ const express = require('express')
 const cors = require('cors')
 const User = require('./models/user')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+
 
 
 
@@ -31,28 +33,39 @@ const user_router = require('./routes/users')
 
 
 app.post("/login", async (req, res) => {
-    const { token } = req.body
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.CLIENT_ID
-    });
-    const { email } = ticket.getPayload();
-    const user = await User.findOne({ where: { email: email } })
-    if (user === null) {
+    const { email } = req.body
+    const { password } = req.body
 
-        res.status(204)
-        return res.json({ message: "Database Error" })
+    const user = User.findOne({ where: { email: email } })
+        .then(user => {
+            if (user === null) {
 
-    } else {
+                res.status(204)
+                return res.json({ message: "Database Error" })
 
-        const jwttoken = jwt.sign({
-            id: user.id,
-            email: user.email
-        }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_DURING })
+            } else {
 
-        return res.json({ access_token: jwttoken })
+                bcrypt.compare(password, user.password)
+                    .then(test => {
+                        if (!test) {
+                            return res.status(500).json({ message: 'Wrong password' })
+                        } else {
+                            const jwttoken = jwt.sign({
+                                id: user.id,
+                                email: user.email,
+                                password: user.password
+                            }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_DURING })
 
-    }
+                            return res.json({ access_token: jwttoken })
+                        }
+                    })
+                    .catch(err => res.status(500).json({ message: 'Login failed', error: err }))
+
+
+
+            }
+        })
+
 })
 
 
@@ -62,26 +75,23 @@ app.get('/', (req, res) => res.send(`API en ligne`))
 
 app.use('/user', user_router)
 
-// app.use('/auth', auth_router)
-
-
 app.get('*', (req, res) => res.status(501).send('Ressource inexistante'))
 
 
 /*********************************/
 /*** Start server avec test DB ***/
 DB.authenticate()
-    // .then(() =>
-    //     User.findAll()
-    //         .then(user => {
-    //             //vérifier si il n'y a pas d'utilisateur en base
-    //             if (user == "") {
-    //                 User.create({ email: process.env.USER_EMAIL })
-    //                     .then(() => { console.log(`L'utilisateur ${process.env.USER_EMAIL} a bien été crée`) })
-    //                     .catch(err => console.log(`Database Error`, err))
-    //             }
-    //         })
-    // )
+    .then(() =>
+        User.findAll()
+            .then(user => {
+                //vérifier si il n'y a pas d'utilisateur en base
+                if (user == "") {
+                    User.create({ email: process.env.USER_EMAIL, password: process.env.USER_PASSWORD })
+                        .then(() => { console.log(`L'utilisateur ${process.env.USER_EMAIL} a bien été crée`) })
+                        .catch(err => console.log(`Database Error`, err))
+                }
+            })
+    )
     .then(() => {
         appServer = app.listen(process.env.SERVER_PORT, () => {
             console.log(`This server is running on port ${process.env.SERVER_PORT}`)

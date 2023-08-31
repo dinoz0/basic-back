@@ -1,6 +1,7 @@
 /**************************************/
 /*** Import des modules nécessaires ***/
 const express = require('express')
+const bcrypt = require('bcrypt')
 
 const User = require('../models/user')
 
@@ -13,7 +14,7 @@ let router = express.Router()
 /************************************/
 /*** Routage de la ressource User ***/
 
-router.get('', (req, res) => {
+router.get('', checkTokenMiddleware, (req, res) => {
     User.findAll()
         .then(user => res.json({ data: user }))
         .catch(err => res.status(500).json({ message: "Database Error", error: err }))// ne pas laisser pour la version final 
@@ -34,13 +35,15 @@ router.get('/:id', (req, res) => {
                 return res.status(400).json({ message: 'This user does not exist !' })
             }
 
+
+
             // User trouvé
             return res.json({ data: user })
         })
         .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.put('', (req, res) => {
+router.put('', checkTokenMiddleware, (req, res) => {
     const { email, password } = req.body
 
     //Validation des données recus
@@ -55,14 +58,22 @@ router.put('', (req, res) => {
                 return res.status(409).json({ message: `The user ${user} already exists` })
             }
 
-            User.create(req.body)
-                .then(user => res.json({ message: 'User Created', data: user }))
-                .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
+            //hashage du mdp
+            bcrypt.hash(password, 10)
+                .then(hash => {
+                    req.body.password = hash
+                    User.create(req.body)
+                        .then(user => res.json({ message: 'User Created', data: user }))
+                        .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
+                })
+                .catch(err => res.status(500))
+
+
         })
         .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.patch('/:id', (req, res) => {
+router.patch('/:id', checkTokenMiddleware, (req, res) => {
     let userId = parseInt(req.params.id)
 
     //vérification si le champ id est présent et cohérent
@@ -86,7 +97,7 @@ router.patch('/:id', (req, res) => {
         .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', checkTokenMiddleware, (req, res) => {
     let userId = parseInt(req.params.id)
 
     //vérification si le champ id est présent et cohérent
