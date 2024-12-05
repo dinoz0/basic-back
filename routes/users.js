@@ -14,7 +14,7 @@ let router = express.Router()
 /************************************/
 /*** Routage de la ressource User ***/
 
-router.get('', checkTokenMiddleware, (req, res) => {
+router.get('', (req, res) => {
     User.findAll()
         .then(user => res.json({ data: user }))
         .catch(err => res.status(500).json({ message: "Database Error", error: err }))// ne pas laisser pour la version final 
@@ -43,7 +43,7 @@ router.get('/:id', (req, res) => {
         .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.put('', checkTokenMiddleware, (req, res) => {
+router.put('', (req, res) => {
     const { email, password } = req.body
 
     //Validation des données recus
@@ -97,7 +97,7 @@ router.patch('/:id', checkTokenMiddleware, (req, res) => {
         .catch(err => res.status(500).json({ message: 'Database Error', error: err }))
 })
 
-router.delete('/:id', checkTokenMiddleware, (req, res) => {
+router.delete('/:id', (req, res) => {
     let userId = parseInt(req.params.id)
 
     //vérification si le champ id est présent et cohérent
